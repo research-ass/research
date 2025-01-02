@@ -1,0 +1,206 @@
+<purpose>
+    You are an expert in Arduino programming, specializing in integrating multiple sensor codes into a single, optimized, and functional program.
+</purpose>
+
+<instructions>
+    <instruction>Combine the provided PIR motion sensor, smoke sensor, and humidity and temperature sensor codes into one cohesive program.</instruction>
+    <instruction>Ensure that all functionalities of the original codes are preserved.</instruction>
+    <instruction>Identify and fix any bugs or errors present in the original codes.</instruction>
+    <instruction>Optimize the integrated code for better performance and maintainability.</instruction>
+    <instruction>Ensure that the final code functions correctly and efficiently.</instruction>
+</instructions>
+
+<user-prompt>
+        Combine the code into one single code.
+        Do not change any funtionalities.
+        Make sure the code works just like how they are in the first place.
+        Look for bugs and errors and fix them.
+        Optimize the code for better funtionality.
+</user-prompt>
+
+<sensor-codes>
+    <pir-motion-sensor-code>
+        // Define the motion sensor pin and LED pin
+const int motionSensorPin = 2; // Motion sensor connected to digital pin 2
+const int ledPin = 13;         // LED connected to digital pin 13
+
+// Variables to track motion and timing
+unsigned long motionTimer = 0;       // Timer to track 2-minute interval
+const unsigned long activeDuration = 120000; // 2 minutes in milliseconds
+bool motionDetected = false;        // Flag to indicate motion detection
+bool motionPrinted = false;         // Flag to ensure "Motion is Detected" is printed once
+bool noMotionPrinted = true;        // Flag to ensure "Motion Ended" is printed once
+
+void setup() {
+  pinMode(motionSensorPin, INPUT);  // Set motion sensor pin as input
+  pinMode(ledPin, OUTPUT);          // Set LED pin as output
+  digitalWrite(ledPin, HIGH);       // Ensure LED is initially off (HIGH means off for this configuration)
+  Serial.begin(9600);               // Initialize serial communication at 9600 bps
+}
+
+void loop() {
+  // Read the state of the motion sensor
+  int sensorState = digitalRead(motionSensorPin);
+
+  if (sensorState == HIGH) { // If motion is detected
+    if (!motionPrinted) {    // Ensure "Motion is Detected" is printed only once
+      Serial.println("Motion is Detected");
+      motionPrinted = true;
+      noMotionPrinted = false;
+    }
+    motionDetected = true;          // Set motion detected flag
+    motionTimer = millis();         // Reset the timer
+    digitalWrite(ledPin, LOW);      // Turn on the LED
+  }
+
+  // Check if no motion has been detected for the active duration
+  if (motionDetected && (millis() - motionTimer > activeDuration)) {
+    motionDetected = false;         // Reset motion detected flag
+    digitalWrite(ledPin, HIGH);     // Turn off the LED
+    if (!noMotionPrinted) {         // Ensure "Motion Ended" is printed only once
+      Serial.println("Motion Ended");
+      noMotionPrinted = true;
+      motionPrinted = false;        // Reset motion message flag for future triggers
+    }
+  }
+}
+    </pir-motion-sensor-code>
+    <smoke-sensor-code>
+        const int smokeDetector = A1;
+const int ledPin = 13;
+const int bellPin = 12;         // Pin for the Fire Alarm Bell
+const int THRESHOLD = 225;
+const int HYSTERESIS_MARGIN = 5;
+#define SAMPLE_SIZE 10
+
+int samples[SAMPLE_SIZE];
+int index = 0;
+int total = 0;
+
+bool smokeDetected = false;  // Track smoke detection state
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(smokeDetector, INPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(bellPin, OUTPUT);    // Set bellPin as OUTPUT
+  digitalWrite(ledPin, HIGH); // LED OFF
+  digitalWrite(bellPin, LOW); // Fire Alarm Bell OFF
+}
+
+// Add sample to moving average
+void addSample(int value) {
+  total -= samples[index];
+  samples[index] = value;
+  total += value;
+  index = (index + 1) % SAMPLE_SIZE;
+}
+
+// Calculate average
+int getAverage() {
+  return total / SAMPLE_SIZE;
+}
+
+void loop() {
+  int rawData = analogRead(smokeDetector);
+  addSample(rawData);
+  int data = getAverage();
+
+  // Hysteresis logic to prevent rapid toggling
+  if (data >= THRESHOLD + HYSTERESIS_MARGIN && !smokeDetected) {
+    digitalWrite(ledPin, LOW); // Turn on LED (LOW = ON)
+    digitalWrite(bellPin, HIGH); // Activate Fire Alarm Bell
+    Serial.println("SMOKE_DETECTED");
+    smokeDetected = true;
+  } 
+  else if (data <= THRESHOLD - HYSTERESIS_MARGIN && smokeDetected) {
+    digitalWrite(ledPin, HIGH); // Turn off LED (HIGH = OFF)
+    digitalWrite(bellPin, LOW); // Deactivate Fire Alarm Bell
+    Serial.println("NO_SMOKE");
+    smokeDetected = false;
+  }
+
+  delay(500); // Reduce serial monitor flooding
+}
+    </smoke-sensor-code>
+    <humidity-temperature-code>
+        // DHT Temperature & Humidity Sensor
+// Unified Sensor Library Example
+// Written by Tony DiCola for Adafruit Industries
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
+
+#define DHTPIN 2     // Digital pin connected to the DHT sensor 
+// Feather HUZZAH ESP8266 note: use pins 3, 4, 5, 12, 13 or 14 --
+// Pin 15 can work but DHT must be disconnected during program upload.
+
+
+#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+
+
+DHT_Unified dht(DHTPIN, DHTTYPE);
+
+uint32_t delayMS;
+
+void setup() {
+  Serial.begin(9600);
+  // Initialize device.
+  dht.begin();
+  Serial.println(F("DHTxx Unified Sensor Example"));
+  // Print temperature sensor details.
+  sensor_t sensor;
+  dht.temperature().getSensor(&sensor);
+  Serial.println(F("------------------------------------"));
+  Serial.println(F("Temperature Sensor"));
+  Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
+  Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
+  Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
+  Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("°C"));
+  Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("°C"));
+  Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("°C"));
+  Serial.println(F("------------------------------------"));
+  // Print humidity sensor details.
+  dht.humidity().getSensor(&sensor);
+  Serial.println(F("Humidity Sensor"));
+  Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
+  Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
+  Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
+  Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("%"));
+  Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("%"));
+  Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("%"));
+  Serial.println(F("------------------------------------"));
+  // Set delay between sensor readings based on sensor details.
+  delayMS = sensor.min_delay / 1000;
+}
+
+void loop() {
+  // Delay between measurements.
+  delay(delayMS);
+  // Get temperature event and print its value.
+  sensors_event_t event;
+  dht.temperature().getEvent(&event);
+  if (isnan(event.temperature)) {
+    Serial.println(F("Error reading temperature!"));
+  }
+  else {
+    Serial.print(F("Temperature: "));
+    Serial.print(event.temperature);
+    Serial.println(F("°C"));
+  }
+  // Get humidity event and print its value.
+  dht.humidity().getEvent(&event);
+  if (isnan(event.relative_humidity)) {
+    Serial.println(F("Error reading humidity!"));
+  }
+  else {
+    Serial.print(F("Humidity: "));
+    Serial.print(event.relative_humidity);
+    Serial.println(F("%"));
+  }
+}
+
+    </humidity-temperature-code>
+</sensor-codes>
+
+Your integrated and optimized Arduino code:

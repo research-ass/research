@@ -1,9 +1,32 @@
 {
-    "name": "basic-socket",
-    "version": "0.0.1",
-    "description": "Communication between Arduino and HTML/JavaScript",
-    "dependencies": {
-        "socket.io": "^2.0.4",
-        "serialport": "^9.0.1"
-    }
+  "name": "arduino-website-integration",
+  "version": "1.0.0",
+  "description": "Real-time communication between an Arduino and a web interface using Node.js and WebSockets",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [
+    "arduino",
+    "socket.io",
+    "serialport",
+    "real-time",
+    "web-integration"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@serialport/parser-readline": "^12.0.0",
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.5.0",
+    "express-router": "^0.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.2",
+    "serialport": "^12.0.0",
+    "socket.io": "^4.7.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
 }
