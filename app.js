@@ -61,7 +61,7 @@ app.get('/', authMiddleware, catchAsync(async (req, res) => {
 let serialPort;
 try {
     serialPort = new SerialPort({
-        path: process.env.ARDUINO_PORT || '/dev/cu.usbserial-110',
+        path: process.env.ARDUINO_PORT || '/dev/ttyUSB0',
         baudRate: parseInt(process.env.ARDUINO_BAUD_RATE) || 9600
     });
 } catch (err) {
